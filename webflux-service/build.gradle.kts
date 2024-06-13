@@ -1,19 +1,9 @@
-plugins {
-   id("java")
+object Version {
+   const val jsr = "2.13.5"
 }
 
-group = "com.kbds.devops"
-version = "1.0-SNAPSHOT"
-
-repositories {
-   mavenCentral()
-}
 
 dependencies {
-   testImplementation(platform("org.junit:junit-bom:5.9.1"))
-   testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-   useJUnitPlatform()
+   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Version.jsr}")
+   testImplementation("io.projectreactor:reactor-test")
 }

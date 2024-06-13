@@ -4,8 +4,6 @@ plugins {
     id("io.spring.dependency-management") version "1.0.15.RELEASE" apply false
 }
 
-
-
 subprojects {
     apply(plugin = "java")
     apply(plugin = "org.springframework.boot")
@@ -23,7 +21,8 @@ subprojects {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
 
-        testImplementation("io.projectreactor:reactor-test")
+        testImplementation(platform("org.junit:junit-bom:5.9.1"))
+        testImplementation("org.junit.jupiter:junit-jupiter")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
@@ -50,7 +49,3 @@ allprojects {
         sourceCompatibility  = JavaVersion.VERSION_1_8
     }
 }
-
-
-
-
