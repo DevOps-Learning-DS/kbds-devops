@@ -1,10 +1,7 @@
 package com.kbds.devops.webflux.app.model;
 
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,8 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @EqualsAndHashCode
 @ToString
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor
 public class Member {
-
     private long id;
     private String firstName;
     private String surname;
