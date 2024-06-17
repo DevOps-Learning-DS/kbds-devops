@@ -31,6 +31,14 @@ public class WebMvcController {
                         :ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/find")
+    @ResponseBody
+    public ResponseEntity<List<Member>> findBySurname(@RequestParam("surname") String surname) {
+        List<Member> memberList = memberService.findBySurname(surname);
+        return memberList.isEmpty()? ResponseEntity.notFound().build()
+                :ResponseEntity.ok(memberList);
+    }
+
     @PostMapping("/new")
     @ResponseBody
     public ResponseEntity<Member> createMember(@RequestBody Member member) {

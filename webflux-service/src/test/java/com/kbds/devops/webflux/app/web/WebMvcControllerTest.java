@@ -67,9 +67,26 @@ class WebMvcControllerTest {
     }
 
     @Test
+    void findBySurname() throws Exception {
+        List<Member> memberList = memberService.getAllMembers();
+        memberList.remove(1);
+        String expected = objectMapper.writeValueAsString(memberList);
+        MvcResult result = mockMvc.perform(
+                        get(URL_PREFIX + "/find")
+                                .queryParam("surname", "P")
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+
+        assertThat(content).isEqualTo(expected);
+    }
+
+    @Test
     void createMember() throws Exception  {
         String memberString = "";
-        String expectedMemberString ="";
         try {
             memberString = objectMapper.writeValueAsString(
                     new Member(0l,"BK","Park22",34

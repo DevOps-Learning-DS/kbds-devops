@@ -5,6 +5,8 @@ import com.kbds.devops.webflux.app.WebfluxApplication;
 import com.kbds.devops.webflux.app.model.Member;
 import com.kbds.devops.webflux.app.service.MemberService;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -15,9 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -25,6 +29,7 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -36,11 +41,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-
-
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@AutoConfigureWebTestClient
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(controllers = WebFluxController.class)
@@ -57,84 +57,108 @@ class WebFluxControllerTest {
 
     MockMvc mockMvc;
 
+    @Autowired
     MemberService memberService;
 
+    WebTestClient webTestClient;
 
     private static final Logger logger = getLogger(WebFluxControllerTest.class);
 
     private static final String URL_PREFIX = "/webflux";
 
+    @BeforeEach
+    public void beforeEach() {
+        webTestClient = WebTestClient.bindToApplicationContext(applicationContext).build();
+    }
+
     @Test
     void getMember() throws Exception {
-        String expected = objectMapper.writeValueAsString(
+        Member expected =
                 new Member(1l,"BK","Park",50
-                ,LocalDateTime.of(2024, 6, 10, 11, 24, 30)
-                ));
+                ,LocalDateTime.of(2024, 6, 10, 11, 24, 30));
 
-        WebTestClient webTestClient = WebTestClient.bindToApplicationContext(applicationContext).build();
-
-        webTestClient.get().uri(URL_PREFIX +"/1")
+        EntityExchangeResult<Member> result =
+                webTestClient.get().uri(URL_PREFIX + "/1")
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody().returnResult().getResponseBody().toString();
+                .expectBody(Member.class)
+                .returnResult();
 
+        assertThat(result.getResponseBody()).isEqualTo(expected);
+    }
+
+    @Test
+    void findBySurname() {
+        List<Member> expected =  memberService.getAllMembers();
+        expected.remove(1);
+
+        String searchWord = "P";
+        EntityExchangeResult<List<Member>> result = webTestClient
+                .get()
+                .uri( uriBuilder->uriBuilder.path(URL_PREFIX+"/find")
+                        .queryParam("surname", searchWord)
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<List<Member>>() {})
+                .returnResult();
+
+        assertThat(result.getResponseBody()).isEqualTo(expected);
     }
 
     @Test
     void createMember() throws Exception  {
-        String memberString = "";
-        String expectedMemberString ="";
-        try {
-            memberString = objectMapper.writeValueAsString(
-                    new Member(0l,"BK","Park22",34
-                            ,LocalDateTime.of(2024, 6, 10, 11, 24, 30))
-            );
-        }
-        catch(Exception ce) {
-            Assertions.fail(ce.getMessage());
-        }
+        Member expected = new Member(4l,"BK","Park22",34
+                ,LocalDateTime.of(2024, 6, 10, 11, 24, 30));
 
-        MvcResult result = mockMvc.perform(
-                        post(URL_PREFIX + "/new")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(memberString)
-                )
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        Member member = new Member(0l,"BK","Park22",34
+                ,LocalDateTime.of(2024, 6, 10, 11, 24, 30));
 
-        String content = result.getResponse().getContentAsString();
+        EntityExchangeResult<Member> result = webTestClient
+                .post()
+                .uri(URL_PREFIX+"/new")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(member)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Member.class)
+                .returnResult();
 
-        assertThat(content).isNotEmpty();
+        assertThat(result.getResponseBody()).isEqualTo(expected);
     }
 
     @Test
     public void getAllMembers() throws Exception  {
-        String expected =  objectMapper.writeValueAsString(memberService.getAllMembers());
+        List<Member> expected =  memberService.getAllMembers();
 
-        MvcResult result = mockMvc.perform(get(URL_PREFIX+ "/all"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        EntityExchangeResult<List<Member>> result = webTestClient
+                .get()
+                .uri(URL_PREFIX+"/all")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<List<Member>>() {})
+                .returnResult();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo(expected);
+        assertThat(result.getResponseBody()).isEqualTo(expected);
     }
 
 
     @Test
     public void getListMembers() throws Exception {
-        List<Member>  memberList = memberService.getAllMembers();
-        memberList.remove(2);
-        String expected =  objectMapper.writeValueAsString(memberList);
+        List<Long> memberIdList = Arrays.asList(1l, 2l);
+        List<Member> expected =  memberService.getAllMembers();
+        expected.remove(2);
 
-        MvcResult result = mockMvc.perform(post(URL_PREFIX + "/members")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content( objectMapper.writeValueAsString( Arrays.asList(1,2)) )
-                )
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        EntityExchangeResult<List<Member>> result = webTestClient
+                .post()
+                .uri(URL_PREFIX+"/members")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(memberIdList)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<List<Member>>() {})
+                .returnResult();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo(expected);
+        assertThat(result.getResponseBody()).isEqualTo(expected);
     }
 }

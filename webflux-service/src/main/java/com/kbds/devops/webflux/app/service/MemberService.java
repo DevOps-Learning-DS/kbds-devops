@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,5 +46,11 @@ public class MemberService {
 
     public List<Member> getAllMembers() {
         return memberList;
+    }
+
+    public List<Member> findBySurname(String surname) {
+        return memberList.stream().filter(member->member.getSurname().contains(surname))
+                .collect(Collectors.toList());
+
     }
 }
