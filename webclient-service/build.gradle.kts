@@ -5,5 +5,6 @@ object Versions {
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:${Versions.openFeignVersion}")
     implementation("io.github.openfeign:feign-jackson:12.0")
+    implementation("com.google.guava:guava:31.0-jre")
     implementation(project(":webflux-service"))
 }

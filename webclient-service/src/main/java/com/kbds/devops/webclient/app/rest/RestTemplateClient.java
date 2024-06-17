@@ -15,31 +15,18 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriBuilder;
-import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class RestTemplateClient {
-
-    private static Logger logger = LoggerFactory.getLogger(RestTemplateClient.class);
-
-    public static void main(String[] args) {
-        RestTemplateClient restTemplateClient = new RestTemplateClient();
-        restTemplateClient.init();
-       // restTemplateClient.runGetForEntity();
-        restTemplateClient.runPostForEntity();
-    }
-
+public class RestTemplateClient extends HttpClientTemplate {
     private RestTemplate restTemplate;
-    private ObjectMapper objectMapper = new CommonConfig().objectMapper();
-    public void init() {
+
+    public RestTemplateClient() {
         restTemplate = new RestTemplate();
+        setHttpClientName("RestTemplate");
         List<HttpMessageConverter<?>> messageConverterList = new ArrayList<>();
         messageConverterList.add( new ByteArrayHttpMessageConverter());
         messageConverterList.add( new StringHttpMessageConverter());
@@ -49,10 +36,33 @@ public class RestTemplateClient {
         restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:8080/webmvc"));
     }
 
-    public void runGetForEntity() {
+    @Override
+    public Member getMember() {
         String id ="1";
         try {
             ResponseEntity<Member> responseEntity = restTemplate.getForEntity("/{id}", Member.class,id);
+            return responseEntity.getBody();
+        }
+        catch(HttpClientErrorException httpClientEx) {
+            if( httpClientEx.getStatusCode() == HttpStatus.NOT_FOUND ){
+                logger.info("Failed to get id {}", id);
+            }
+            else {
+                logger.error("Error is = {}", httpClientEx.getResponseBodyAsString());
+            }
+        }
+            catch(HttpServerErrorException httpServerEx) {
+            logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
+        }
+
+        return null;
+    }
+
+
+    public void runGetForEntity() {
+        String id ="1";
+        try {
+
             Member member = restTemplate.getForObject("/{id}", Member.class, id);
             ResponseEntity<?> responseEntityFind= restTemplate.getForEntity(
                     UriComponentsBuilder.fromPath("/find").queryParam("surname", "P").build().toString()
@@ -128,4 +138,6 @@ public class RestTemplateClient {
             logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
         }
     }
+
+
 }
