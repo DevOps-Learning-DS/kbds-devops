@@ -12,20 +12,10 @@ import java.util.List;
 
 public class WebClientApplication {
     public static void main(String[] args) {
-        WebClientApplication webClientApplication = new WebClientApplication();
-        webClientApplication.init();
-        webClientApplication.runGetMethod();
+        HttpClientRunner httpClientRunner = new HttpClientRunner();
+        httpClientRunner.init();
+       // httpClientRunner.runGetMember();
+        httpClientRunner.runFindBySurname();
     }
 
-    private void runGetMethod() {
-        httpClientTemplateList.stream().forEach(httpClientTemplate -> {
-            httpClientTemplate.runGetMember();;
-        });
-    }
-
-    private List<HttpClientTemplate> httpClientTemplateList = new ArrayList<>();
-
-    public void init() {
-        httpClientTemplateList.add(new RestTemplateClient());
-    }
 }

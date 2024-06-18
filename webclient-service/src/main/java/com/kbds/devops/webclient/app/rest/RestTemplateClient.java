@@ -1,10 +1,6 @@
 package com.kbds.devops.webclient.app.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kbds.devops.webflux.app.config.CommonConfig;
 import com.kbds.devops.webflux.app.model.Member;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -21,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RestTemplateClient extends HttpClientTemplate {
+public class RestTemplateClient extends AbstractHttpClient {
     private RestTemplate restTemplate;
 
     public RestTemplateClient() {
@@ -56,6 +52,14 @@ public class RestTemplateClient extends HttpClientTemplate {
         }
 
         return null;
+    }
+
+    @Override
+    public List<Member> findBySurname() {
+        List<Member> memberList = (List<Member>)restTemplate.getForObject(
+                UriComponentsBuilder.fromPath("/find").queryParam("surname", "P").build().toString()
+                ,List.class );
+        return memberList;
     }
 
 

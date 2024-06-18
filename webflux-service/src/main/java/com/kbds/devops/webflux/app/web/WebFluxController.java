@@ -25,34 +25,26 @@ public class WebFluxController {
 
     @GetMapping("/{id}")
     @ResponseBody
-    public Mono<ResponseEntity<Member>> getMember(@PathVariable Long id) {
-        return Mono.just(id).map(memberId->{
-            Optional<Member> memberOptional  = memberService.getMember(memberId);
-            return memberOptional.isPresent()?ResponseEntity.ok(memberOptional.get())
-                    :ResponseEntity.notFound().build();
-        });
+    public Mono<Member> getMember(@PathVariable Long id) {
+        return Mono.just(id).map(memberId->memberService.getMember(memberId).orElseGet(null));
     }
 
     @GetMapping("/find")
     @ResponseBody
-    public Mono<ResponseEntity<List<Member>>> findBySurname(@RequestParam("surname") String surname) {
-        return Mono.just(surname).map(searchWord-> {
-            List<Member> memberList = memberService.findBySurname(surname);
-            return memberList.isEmpty() ? ResponseEntity.notFound().build()
-                    : ResponseEntity.ok(memberList);
-        });
+    public Mono<List<Member>> findBySurname(@RequestParam("surname") String surname) {
+        return Mono.just(surname).map(memberService::findBySurname);
     }
 
     @PostMapping("/new")
     @ResponseBody
-    public Mono<ResponseEntity<Member>> createMember(@RequestBody Member member) {
-        return Mono.just(member).map(newMember->ResponseEntity.ok(memberService.create(newMember)));
+    public Mono<Member> createMember(@RequestBody Member member) {
+        return Mono.just(member).map(memberService::create);
     }
 
     @GetMapping("/all")
     @ResponseBody
-    public Mono<ResponseEntity<List<Member>>> getAllMembers() {
-        return Mono.just("nodata").map(noData->ResponseEntity.ok(memberService.getAllMembers()));
+    public Mono<List<Member>> getAllMembers() {
+        return Mono.just("nodata").map(nodata->memberService.getAllMembers());
     }
 
     @PostMapping("/members")

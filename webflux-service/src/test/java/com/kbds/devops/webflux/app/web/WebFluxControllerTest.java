@@ -32,6 +32,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -89,7 +90,7 @@ class WebFluxControllerTest {
 
     @Test
     void findBySurname() {
-        List<Member> expected =  memberService.getAllMembers();
+        List<Member> expected = new ArrayList<>(memberService.getAllMembers());
         expected.remove(1);
 
         String searchWord = "P";
@@ -146,8 +147,8 @@ class WebFluxControllerTest {
     @Test
     public void getListMembers() throws Exception {
         List<Long> memberIdList = Arrays.asList(1l, 2l);
-        List<Member> expected =  memberService.getAllMembers();
-        expected.remove(2);
+        List<Member> expected = new ArrayList<>( memberService.getAllMembers());
+        if( expected.size() > 2) expected.remove(2);
 
         EntityExchangeResult<List<Member>> result = webTestClient
                 .post()
