@@ -9,6 +9,7 @@ import com.kbds.devops.webflux.app.model.Member;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,10 @@ public class HttpClientRunner {
 
     private static String SPERATED_LINE = "===========================================================";
 
+    private Stopwatch stopWatch;
+    private String httpClientName;
+    private String methodName;
+
     public void init() {
         httpClientList.add(new RestTemplateClient());
         httpClientList.add(new FeignTemplateClient());
@@ -27,32 +32,47 @@ public class HttpClientRunner {
     }
 
     public void runGetMember() {
+        methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         httpClientList.stream().forEach(httpClientTemplate ->{
-            Stopwatch stopWatch = Stopwatch.createStarted();
-            String httpClientName = httpClientTemplate.getHttpClientName();
-            logger.info(SPERATED_LINE);
+            startLine(httpClientTemplate);
             logger.info("getMember has started in {} at {}", httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
             Member member = httpClientTemplate.getMember();
-            stopWatch.stop();
-            stopWatch.reset();
-            logger.info("getMember has stopped in {} at {}", httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
-            logger.info("Member is ={}", member.toString());
-            logger.info(SPERATED_LINE);
+            endLine(member );
         });
     }
 
     public void runFindBySurname() {
+        methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         httpClientList.stream().forEach(httpClientTemplate ->{
-            Stopwatch stopWatch = Stopwatch.createStarted();
-            String httpClientName = httpClientTemplate.getHttpClientName();
-            logger.info(SPERATED_LINE);
-            logger.info("findBySurname has started in {} at {}", httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+            startLine(httpClientTemplate);
             List<Member> memberList = httpClientTemplate.findBySurname();
-            stopWatch.stop();
-            stopWatch.reset();
-            logger.info("findBySurname has stopped in {} at {}", httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
-            logger.info("Member is ={}", memberList.toString());
-            logger.info(SPERATED_LINE);
+            endLine(memberList);
         });
+    }
+
+    public void runCreateMember() {
+        methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        httpClientList.stream().forEach(httpClientTemplate ->{
+            startLine(httpClientTemplate);
+            Member member = new Member(0l,"First","Surname",23,
+                    LocalDateTime.of(2021, 7, 20, 11, 0, 0));
+            List<Member> memberList = httpClientTemplate.createMember(member);
+            endLine(memberList );
+        });
+    }
+
+    private void startLine(AbstractHttpClient httpClient) {
+        stopWatch = Stopwatch.createStarted();
+        httpClientName = httpClient.getHttpClientName();
+        logger.info(SPERATED_LINE);
+        logger.info("{} has started in {} at {}", methodName, httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+    }
+
+    private <T> void endLine(T result) {
+        stopWatch.stop();
+        stopWatch.reset();
+        logger.info("{} has stopped in {} at {}",methodName, httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+        logger.info("Result is ={}", result.toString());
+        logger.info(SPERATED_LINE);
     }
 }

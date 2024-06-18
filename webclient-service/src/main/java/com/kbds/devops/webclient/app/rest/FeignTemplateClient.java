@@ -11,10 +11,10 @@ import java.util.List;
 
 public class FeignTemplateClient extends AbstractHttpClient {
 
-    private WebMvcFeignClient webMvcFeignClient;
+    private final WebMvcFeignClient webMvcFeignClient;
 
     public FeignTemplateClient() {
-        webMvcFeignClient = (WebMvcFeignClient) Feign.builder()
+        webMvcFeignClient = Feign.builder()
                 .decoder(new JacksonDecoder(objectMapper))
                 .encoder(new JacksonEncoder(objectMapper))
                 .contract(new SpringMvcContract())
@@ -28,5 +28,10 @@ public class FeignTemplateClient extends AbstractHttpClient {
     @Override
     public List<Member> findBySurname() {
         return webMvcFeignClient.findBySurname("P");
+    }
+
+    @Override
+    public Member createMember(Member member) {
+        return webMvcFeignClient.create(member);
     }
 }

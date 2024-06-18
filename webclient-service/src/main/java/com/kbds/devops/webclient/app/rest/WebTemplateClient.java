@@ -2,6 +2,8 @@ package com.kbds.devops.webclient.app.rest;
 
 import com.kbds.devops.webflux.app.model.Member;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
@@ -44,5 +46,16 @@ public class WebTemplateClient extends AbstractHttpClient {
                 .bodyToMono(new ParameterizedTypeReference<List<Member>>() {});
 
         return memberListMono.block();
+    }
+
+    @Override
+    public Member createMember(Member member) {
+        return webClient.post()
+                .uri("/new")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(member)
+                .retrieve()
+                .bodyToMono(Member.class)
+                .block();
     }
 }

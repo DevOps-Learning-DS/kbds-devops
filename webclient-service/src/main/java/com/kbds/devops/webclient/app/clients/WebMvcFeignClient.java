@@ -2,12 +2,9 @@ package com.kbds.devops.webclient.app.clients;
 
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import com.kbds.devops.webflux.app.model.Member;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -19,4 +16,7 @@ public interface WebMvcFeignClient {
 
     @GetMapping("/find")
     List<Member> findBySurname(@RequestParam("surname") String surname);
+
+    @PostMapping("/new")
+    Member create(@RequestBody Member member);
 }

@@ -1,19 +1,18 @@
 package com.kbds.devops.webclient.app.rest;
 
 import com.kbds.devops.webflux.app.model.Member;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,114 +33,24 @@ public class RestTemplateClient extends AbstractHttpClient {
 
     @Override
     public Member getMember() {
-        String id ="1";
-        try {
-            ResponseEntity<Member> responseEntity = restTemplate.getForEntity("/{id}", Member.class,id);
-            return responseEntity.getBody();
-        }
-        catch(HttpClientErrorException httpClientEx) {
-            if( httpClientEx.getStatusCode() == HttpStatus.NOT_FOUND ){
-                logger.info("Failed to get id {}", id);
-            }
-            else {
-                logger.error("Error is = {}", httpClientEx.getResponseBodyAsString());
-            }
-        }
-            catch(HttpServerErrorException httpServerEx) {
-            logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
-        }
-
-        return null;
+            return restTemplate.getForObject("/{id}", Member.class,"1");
     }
 
     @Override
     public List<Member> findBySurname() {
-        List<Member> memberList = (List<Member>)restTemplate.getForObject(
-                UriComponentsBuilder.fromPath("/find").queryParam("surname", "P").build().toString()
+        return (List<Member>)restTemplate.getForObject(
+                    UriComponentsBuilder
+                            .fromPath("/find")
+                            .queryParam("surname", "P")
+                            .build().toString()
                 ,List.class );
-        return memberList;
     }
 
-
-    public void runGetForEntity() {
-        String id ="1";
-        try {
-
-            Member member = restTemplate.getForObject("/{id}", Member.class, id);
-            ResponseEntity<?> responseEntityFind= restTemplate.getForEntity(
-                    UriComponentsBuilder.fromPath("/find").queryParam("surname", "P").build().toString()
-                    , List.class );
-            List<Member> memberList = (List<Member>)responseEntityFind.getBody();
-            logger.info("memberList={}",memberList);
-        }
-        catch(HttpClientErrorException httpClientEx) {
-            if( httpClientEx.getStatusCode() == HttpStatus.NOT_FOUND ){
-                logger.info("Failed to get id {}", id);
-            }
-            else {
-                logger.error("Error is = {}", httpClientEx.getResponseBodyAsString());
-            }
-        }
-        catch(HttpServerErrorException httpServerEx) {
-            logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
-        }
+    @Override
+    public Member createMember(Member member) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Member> postRequest = new HttpEntity<>(member, headers);
+        return restTemplate.postForObject("/new", postRequest, Member.class);
     }
-
-    public void runPostForEntity() {
-        String memberString ="1";
-        try {
-            memberString = objectMapper.writeValueAsString(
-                    new Member(0l,"BK","Park22",34
-                            , LocalDateTime.of(2024, 6, 10, 11, 24, 30))
-            );
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> postRequest = new HttpEntity<>(memberString, headers);
-            ResponseEntity<Member> responseEntity =
-                    restTemplate.postForEntity("/new", postRequest, Member.class);
-            logger.info("Member={}",responseEntity.getBody());
-
-            ResponseEntity<?> responseEntityFind= restTemplate.getForEntity(
-                    UriComponentsBuilder.fromPath("/find").queryParam("surname", "P").build().toString()
-                    , List.class );
-            List<Member> memberList = (List<Member>)responseEntityFind.getBody();
-            logger.info("memberList={}",memberList);
-        }
-        catch(HttpClientErrorException httpClientEx) {
-            if( httpClientEx.getStatusCode() == HttpStatus.NOT_FOUND ){
-                logger.info("Failed to get id {}");
-            }
-            else {
-                logger.error("Error is = {}", httpClientEx.getResponseBodyAsString());
-            }
-        }
-        catch(HttpServerErrorException httpServerEx) {
-            logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
-        }
-        catch (Exception ce) {
-            logger.error(ce.getMessage(), ce);
-        }
-    }
-
-    public void runExchange() {
-        String id ="4";
-        try {
-            ResponseEntity<Member> responseEntity = restTemplate.getForEntity("/{id}", Member.class, id);
-            logger.info("Member={}", responseEntity.getBody());
-        }
-        catch(HttpClientErrorException httpClientEx) {
-            if( httpClientEx.getStatusCode() == HttpStatus.NOT_FOUND ){
-                logger.info("Failed to get id {}", id);
-            }
-            else {
-                logger.error("Error is = {}", httpClientEx.getResponseBodyAsString());
-            }
-        }
-        catch(HttpServerErrorException httpServerEx) {
-            logger.error("Error is = {}", httpServerEx.getResponseBodyAsString());
-        }
-    }
-
-
 }
