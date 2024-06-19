@@ -2,8 +2,6 @@ package com.kbds.devops.webclient.app.rest;
 
 import com.kbds.devops.webflux.app.model.Member;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;

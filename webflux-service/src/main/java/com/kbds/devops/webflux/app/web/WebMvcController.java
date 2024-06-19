@@ -2,9 +2,8 @@ package com.kbds.devops.webflux.app.web;
 
 import com.kbds.devops.webflux.app.model.Member;
 import com.kbds.devops.webflux.app.service.MemberService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -61,4 +60,6 @@ public class WebMvcController {
 
         return ResponseEntity.ok(memberList);
     }
+
+
 }

@@ -3,21 +3,33 @@ package com.kbds.devops.webflux.app.web;
 
 import com.kbds.devops.webflux.app.model.Member;
 import com.kbds.devops.webflux.app.service.MemberService;
+import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
 
 @Controller
 @RequestMapping("/webflux")
 public class WebFluxController {
+    private static Logger logger = LoggerFactory.getLogger(WebFluxController.class);
     @Autowired
     private MemberService memberService;
 
@@ -52,5 +64,21 @@ public class WebFluxController {
                 .map(memberService::getMember)
                 .filter(Optional::isPresent)
                 .map(Optional::get);
+    }
+
+
+    private AtomicInteger counter = new AtomicInteger();
+
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+    @GetMapping(value="/bench",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    @ResponseBody
+    public Mono<String> bench() {
+        return Mono.just("dataCount"+ counter )
+                .delayElement(Duration.of(500l, ChronoUnit.MILLIS ))
+                .map(data->{
+                    logger.info("Total={}, Active={}", threadMXBean.getThreadCount(), Thread.activeCount());
+                    return data;
+                });
     }
 }
