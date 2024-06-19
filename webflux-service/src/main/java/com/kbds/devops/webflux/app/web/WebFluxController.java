@@ -18,8 +18,6 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/webflux")
 public class WebFluxController {
-    private static Logger logger = LoggerFactory.getLogger(WebFluxController.class);
-
     @Autowired
     private MemberService memberService;
 
@@ -51,6 +49,8 @@ public class WebFluxController {
     @ResponseBody
     public Flux<Member> getListMembers(@RequestBody List<Long> memberIdList) {
         return Flux.just( memberIdList.toArray(new Long[0]))
-                .map(memberId->memberService.getMember(memberId).orElseGet(Member::new));
+                .map(memberService::getMember)
+                .filter(Optional::isPresent)
+                .map(Optional::get);
     }
 }

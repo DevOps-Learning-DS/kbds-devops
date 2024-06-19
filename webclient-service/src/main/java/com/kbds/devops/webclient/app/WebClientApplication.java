@@ -6,7 +6,10 @@ public class WebClientApplication {
         HttpClientRunner httpClientRunner = new HttpClientRunner();
         httpClientRunner.init();
        // httpClientRunner.runGetMember();
-        httpClientRunner.runFindBySurname();
+        //httpClientRunner.runFindBySurname();
+        //httpClientRunner.runCreateMember();
+        // httpClientRunner.runGetAllMembers();
+        httpClientRunner.runGetListMembers();
     }
 
 }

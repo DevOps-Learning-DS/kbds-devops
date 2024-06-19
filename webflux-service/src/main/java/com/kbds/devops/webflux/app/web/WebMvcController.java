@@ -11,15 +11,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/webmvc")
 public class WebMvcController {
-    private static Logger logger = LoggerFactory.getLogger(WebMvcController.class);
-
     @Autowired
     private MemberService memberService;
 
@@ -56,7 +52,7 @@ public class WebMvcController {
     public ResponseEntity<List<Member>> getListMembers(@RequestBody List<Long> memberIdList) {
         List<Member> memberList =
                 memberIdList.stream()
-                        .map(memberId->memberService.getMember(memberId))
+                        .map(memberService::getMember)
                         .filter(Optional::isPresent)
                         .collect( ArrayList::new
                                 , (list, optionalMember)->list.add(optionalMember.get())

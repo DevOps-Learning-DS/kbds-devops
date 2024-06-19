@@ -1,8 +1,10 @@
 package com.kbds.devops.webclient.app.rest;
 
 import com.kbds.devops.webflux.app.model.Member;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -38,12 +40,13 @@ public class RestTemplateClient extends AbstractHttpClient {
 
     @Override
     public List<Member> findBySurname() {
-        return (List<Member>)restTemplate.getForObject(
-                    UriComponentsBuilder
-                            .fromPath("/find")
-                            .queryParam("surname", "P")
-                            .build().toString()
-                ,List.class );
+        return restTemplate.exchange(UriComponentsBuilder
+                .fromPath("/find")
+                .queryParam("surname", "P")
+                .build().toString()
+                , HttpMethod.GET
+                , new HttpEntity<String>("",new HttpHeaders())
+                , new ParameterizedTypeReference<List<Member>>(){}).getBody();
     }
 
     @Override
@@ -52,5 +55,20 @@ public class RestTemplateClient extends AbstractHttpClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Member> postRequest = new HttpEntity<>(member, headers);
         return restTemplate.postForObject("/new", postRequest, Member.class);
+    }
+
+    @Override
+    public List<Member> getAllMembers() {
+        return (List<Member>)restTemplate.getForObject("/all", List.class );
+    }
+
+    @Override
+    public List<Member> getListMembers(List<Long> memberIdList) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<List<Long>> postRequest = new HttpEntity<>(memberIdList, headers);
+        return restTemplate.exchange("/members", HttpMethod.POST, postRequest
+                , new ParameterizedTypeReference<List<Member>>() {}
+                , memberIdList).getBody();
     }
 }

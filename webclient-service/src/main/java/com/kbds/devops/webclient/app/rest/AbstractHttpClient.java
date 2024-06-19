@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public abstract class AbstractHttpClient {
     public abstract Member getMember();
     public abstract List<Member> findBySurname();
     public abstract Member createMember(Member member);
+    public abstract List<Member> getAllMembers();
+    public abstract List<Member> getListMembers(List<Long> memberIdList);
 }

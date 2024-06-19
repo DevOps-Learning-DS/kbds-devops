@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +57,26 @@ public class HttpClientRunner {
             startLine(httpClientTemplate);
             Member member = new Member(0l,"First","Surname",23,
                     LocalDateTime.of(2021, 7, 20, 11, 0, 0));
-            List<Member> memberList = httpClientTemplate.createMember(member);
+            Member resMember = httpClientTemplate.createMember(member);
+            endLine(resMember );
+        });
+    }
+
+    public void runGetAllMembers() {
+        methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        httpClientList.stream().forEach(httpClientTemplate ->{
+            startLine(httpClientTemplate);
+            List<Member> memberList = httpClientTemplate.getAllMembers();
+            endLine(memberList );
+        });
+    }
+
+    public void runGetListMembers() {
+        methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        final List<Long> memberIdList = Arrays.asList(1l, 9l);
+        httpClientList.stream().forEach(httpClientTemplate ->{
+            startLine(httpClientTemplate);
+            List<Member> memberList = httpClientTemplate.getListMembers(memberIdList);
             endLine(memberList );
         });
     }
@@ -72,7 +92,17 @@ public class HttpClientRunner {
         stopWatch.stop();
         stopWatch.reset();
         logger.info("{} has stopped in {} at {}",methodName, httpClientName, stopWatch.elapsed(TimeUnit.MILLISECONDS));
-        logger.info("Result is ={}", result.toString());
+
+        if( result instanceof List ) {
+            logger.info("The size of reslut is ={}", ((List)result).size());
+            ((List)result).stream().forEach(
+                    member->logger.info("\tMember is ={}", member.toString())
+            );
+        }
+        else if( result instanceof Member ) {
+            logger.info("Member is ={}", result.toString());
+        }
+
         logger.info(SPERATED_LINE);
     }
 }

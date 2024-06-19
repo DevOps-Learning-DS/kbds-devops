@@ -38,14 +38,13 @@ public class WebTemplateClient extends AbstractHttpClient {
 
     @Override
     public List<Member> findBySurname() {
-        Mono<List<Member>> memberListMono = webClient.get().uri( uriBuilder->uriBuilder.path("/find")
+        return webClient.get().uri( uriBuilder->uriBuilder.path("/find")
                 .queryParam("surname", "P")
                 .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Member>>() {});
-
-        return memberListMono.block();
+                .bodyToMono(new ParameterizedTypeReference<List<Member>>() {})
+                .block();
     }
 
     @Override
@@ -56,6 +55,25 @@ public class WebTemplateClient extends AbstractHttpClient {
                 .bodyValue(member)
                 .retrieve()
                 .bodyToMono(Member.class)
+                .block();
+    }
+
+    @Override
+    public List<Member> getAllMembers() {
+        return webClient.get().uri("/all")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Member>>() {})
+                .block();
+    }
+
+    @Override
+    public List<Member> getListMembers(List<Long> memberIdList) {
+        return webClient.post().uri("/members")
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(memberIdList)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Member>>() {})
                 .block();
     }
 }

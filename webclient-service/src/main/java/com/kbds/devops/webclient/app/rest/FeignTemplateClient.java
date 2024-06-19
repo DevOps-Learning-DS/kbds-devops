@@ -19,6 +19,7 @@ public class FeignTemplateClient extends AbstractHttpClient {
                 .encoder(new JacksonEncoder(objectMapper))
                 .contract(new SpringMvcContract())
                 .target(WebMvcFeignClient.class,"http://localhost:8080");
+        setHttpClientName("FeignClient");
     }
     @Override
     public Member getMember() {
@@ -33,5 +34,15 @@ public class FeignTemplateClient extends AbstractHttpClient {
     @Override
     public Member createMember(Member member) {
         return webMvcFeignClient.create(member);
+    }
+
+    @Override
+    public List<Member> getAllMembers() {
+        return webMvcFeignClient.getAllMembers();
+    }
+
+    @Override
+    public List<Member> getListMembers(List<Long> memberIdList) {
+        return webMvcFeignClient.getListMembers(memberIdList);
     }
 }
