@@ -8,11 +8,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.ParallelFlux;
+import reactor.core.scheduler.Schedulers;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class BenchApplication {
     
@@ -31,18 +45,57 @@ public class BenchApplication {
             .baseUrl("http://localhost:8080/webflux")
             .build();
 
-    private static  ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    public static void main(String[] args) {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        Flux.range(1, 1).subscribe(seq->{
-            webClient.get().uri("/bench")
+    private static final RestTemplate restTemplate = restTemplateClient();
+
+    public static RestTemplate restTemplateClient() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<HttpMessageConverter<?>> messageConverterList = new ArrayList<>();
+        messageConverterList.add( new ByteArrayHttpMessageConverter());
+        messageConverterList.add( new StringHttpMessageConverter());
+        messageConverterList.add( new FormHttpMessageConverter());
+        messageConverterList.add( new MappingJackson2HttpMessageConverter(objectMapper));
+        restTemplate.setMessageConverters(messageConverterList);
+        restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:8080/webflux"));
+
+        return restTemplate;
+    }
+
+/*                   webClient.get().uri("/bench")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .block();
+                    .block()*/
 
-
-            logger.info("Total Number={}, Active Number={}", threadMXBean.getThreadCount(),Thread.activeCount());
-        });
+    private static  ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    public static void main(String[] args) {
+        runWebMvcCallWithTreadPool();
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    public static void runFluxCall() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        Flux.range(1, 100)
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .map(seq ->restTemplate.getForObject("/bench", String.class));
+    }
+
+    public static void runWebMvcCallWithTreadPool() {
+        try {
+            logger.info("data={}",
+            CompletableFuture.supplyAsync(
+                    () -> restTemplate.getForObject("/bench", String.class)).get() );
+            logger.info("23131={}",1321);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
 }

@@ -71,10 +71,10 @@ public class WebFluxController {
 
     ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
-    @GetMapping(value="/bench",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    @GetMapping(value="/bench",produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Mono<String> bench() {
-        return Mono.just("dataCount"+ counter )
+        return Mono.just("dataCount"+ counter.getAndIncrement() )
                 .delayElement(Duration.of(500l, ChronoUnit.MILLIS ))
                 .map(data->{
                     logger.info("Total={}, Active={}", threadMXBean.getThreadCount(), Thread.activeCount());

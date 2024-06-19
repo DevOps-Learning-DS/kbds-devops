@@ -2,19 +2,30 @@ package com.kbds.devops.webflux.app.web;
 
 import com.kbds.devops.webflux.app.model.Member;
 import com.kbds.devops.webflux.app.service.MemberService;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Controller
 @RequestMapping("/webmvc")
 public class WebMvcController {
+
+    private static final Logger logger = getLogger(WebMvcController.class);
     @Autowired
     private MemberService memberService;
 
@@ -61,5 +72,19 @@ public class WebMvcController {
         return ResponseEntity.ok(memberList);
     }
 
+    private AtomicInteger counter = new AtomicInteger();
+
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    @GetMapping(value="/bench",produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String bench() {
+        try {
+            Thread.sleep(500l);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        logger.info("Total={}, Active={}", threadMXBean.getThreadCount(), Thread.activeCount());
+        return "dataCount["+ counter.getAndIncrement() +"]";
+    }
 
 }
