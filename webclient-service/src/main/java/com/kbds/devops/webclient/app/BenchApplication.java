@@ -2,6 +2,7 @@ package com.kbds.devops.webclient.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
 import com.kbds.devops.webflux.app.config.CommonConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.ParallelFlux;
 import reactor.core.scheduler.Schedulers;
 
 import java.lang.management.ManagementFactory;
@@ -25,8 +25,6 @@ import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class BenchApplication {
     
@@ -42,7 +40,7 @@ public class BenchApplication {
                         new Jackson2JsonDecoder(objectMapper, MediaType.APPLICATION_JSON));
 
             })
-            .baseUrl("http://localhost:8080/webflux")
+            .baseUrl("http://localhost:8080/")
             .build();
 
     private static final RestTemplate restTemplate = restTemplateClient();
@@ -55,7 +53,7 @@ public class BenchApplication {
         messageConverterList.add( new FormHttpMessageConverter());
         messageConverterList.add( new MappingJackson2HttpMessageConverter(objectMapper));
         restTemplate.setMessageConverters(messageConverterList);
-        restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:8080/webflux"));
+        restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:8080/"));
 
         return restTemplate;
     }
@@ -68,7 +66,25 @@ public class BenchApplication {
 
     private static  ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     public static void main(String[] args) {
-        runWebMvcCallWithTreadPool();
+      //  runRestTemplateForWebMvc();
+      //  runRestTemplateForWebflux();
+        runWebClientForWebflux();
+
+    }
+
+    public static void runWebClientForWebflux() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        Flux.range(1, 100)
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .map(seq ->webClient.get().uri("/webflux/bench")
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .subscribe(responseStr->{
+                    logger.info("responseStr={}", responseStr);
+                }))
+                .subscribe();
+
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -76,26 +92,48 @@ public class BenchApplication {
         }
     }
 
-    public static void runFluxCall() {
+    public static void runWebClientForWebMvc() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         Flux.range(1, 100)
                 .parallel()
                 .runOn(Schedulers.parallel())
-                .map(seq ->restTemplate.getForObject("/bench", String.class));
-    }
+                .map(seq ->restTemplate.getForObject("Method.../bench", String.class));
 
-    public static void runWebMvcCallWithTreadPool() {
         try {
-            logger.info("data={}",
-            CompletableFuture.supplyAsync(
-                    () -> restTemplate.getForObject("/bench", String.class)).get() );
-            logger.info("23131={}",1321);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+        }
+    }
+
+    public static void runRestTemplateForWebflux() {
+        Supplier<String> supplier = ()->{
+            String responseStr =  restTemplate.getForObject("/webflux/bench", String.class);
+            logger.info("responseStr={}", responseStr);
+            return responseStr;
+        };
+
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+        for(int i = 0; i < 100;i++) {
+            futures.add(CompletableFuture.supplyAsync(supplier));
         }
 
+        Void combinedFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    public static void runRestTemplateForWebMvc() {
+        Supplier<String> supplier = ()->{
+            String responseStr =  restTemplate.getForObject("/webmvc/bench", String.class);
+            logger.info("responseStr={}", responseStr);
+            return responseStr;
+        };
+
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+        for(int i = 0; i < 100;i++) {
+            futures.add(CompletableFuture.supplyAsync(supplier));
+        }
+
+        Void combinedFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
 }
