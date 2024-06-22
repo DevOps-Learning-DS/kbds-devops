@@ -45,4 +45,22 @@ allprojects {
     java {
         sourceCompatibility  = JavaVersion.VERSION_1_8
     }
+
+ //   ext.kotlin_version = '1.3.61'
+}
+
+project("auth-service") {
+    abstract class CreateFileTask : DefaultTask() {
+        @TaskAction
+        fun action() {
+            println("project nam=${project.name}")
+        }
+    }
+
+    tasks.register<CreateFileTask>("display")
+}
+
+buildscript {
+    extra["jsonFormatJsr"] = "2.13.5"
+    extra["embeddedMongo"] = "4.12.0"
 }
