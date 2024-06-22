@@ -1,18 +1,10 @@
-object Version {
-    const val jsr = "2.13.5"
-    const val embeddedMongo = "2.13.5"
-}
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
-    testImplementation("io.projectreactor:reactor-test")
-    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:${Version.embeddedMongo}")
-}
+    val embeddedMongoVer = rootProject.extra["embeddedMongo"]
 
-tasks.test {
-    useJUnitPlatform()
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
+    testImplementation("io.projectreactor:reactor-test")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:${embeddedMongoVer}")
 }
