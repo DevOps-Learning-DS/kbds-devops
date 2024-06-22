@@ -6,9 +6,6 @@ import com.kbds.devops.webflux.app.model.Member;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
