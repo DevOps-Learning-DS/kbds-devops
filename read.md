@@ -1,0 +1,1 @@
+Mongo DB 설치한 다음에 devops database 설정할 것
