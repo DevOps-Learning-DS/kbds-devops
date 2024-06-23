@@ -8,3 +8,4 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:${embeddedMongoVer}")
 }
+
