@@ -1,6 +1,8 @@
 .gradle
 build/
+auth-service/build.gradle.kts
 !gradle/wrapper/gradle-wrapper.jar
+!auth-service/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
