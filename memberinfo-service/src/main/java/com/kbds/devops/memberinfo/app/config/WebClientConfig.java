@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class WebClientConfig {
     @Bean
     WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) {
